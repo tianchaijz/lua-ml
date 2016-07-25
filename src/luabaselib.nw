@@ -53,7 +53,7 @@ module Add (MakeParser : Luaparser.MAKER) (I : Luainterp.S) = struct
     ; "nextvar",     V.efunc (V.value **->  V.resultvs) (fun x -> next g.V.globals x)
     ; "tostring",    V.efunc (V.value **->> V.string) V.to_string
     ; "objname",     V.efunc (V.value **->> V.string) (objname g)
-    ; "print",       V.caml_func 
+    ; "print",       V.caml_func
                         (fun args ->
                           List.iter (fun x -> print_endline (V.to_string x)) args;
                           flush stdout;
@@ -76,7 +76,7 @@ module Add (MakeParser : Luaparser.MAKER) (I : Luainterp.S) = struct
                      (fun k v -> V.Table.bind g.V.globals k v)
     ; "getglobal",   V.efunc (V.value **->> V.value) (I.getglobal g)
     ; "setfallback", V.efunc (V.string **-> V.value **->> V.value) (I.setfallback g)
-    ] 
+    ]
 
   include I
   let mk () =
@@ -104,12 +104,12 @@ let do_lexbuf ~sourcename:filename g buf =
         prerr_int line;
         prerr_endline ": syntax error";
         []
-      end 
+      end
   | I.Error s -> (prerr_endline "Lua interpreter halted with error"; [])
   | I.Value.Projection (v, w) -> (prerr_endline ("error projecting to " ^ w); [])
 
 
-let dostring g s = 
+let dostring g s =
   let abbreviate s =
     if String.length s < 200 then s
     else String.sub s 0 60 ^ "..." in
@@ -120,10 +120,10 @@ let dofile g infile =
   try
     let f = match infile with "-" -> stdin | _ -> open_in infile in
     let close () = if infile <> "-" then close_in f else () in
-    try 
+    try
       let answer = I.with_stack (V.srcloc ("dofile('" ^ infile ^ "')") 0) g
                      (do_lexbuf ~sourcename:infile g) (Lexing.from_channel f)
       in  (close(); answer)
     with e -> (close (); raise e)
   with Sys_error msg -> [V.Nil; V.String ("System error: " ^ msg)]
-@ 
+@

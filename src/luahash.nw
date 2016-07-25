@@ -91,11 +91,11 @@ val next  : ('a, 'b) t -> 'a -> 'a * 'b
 val hash : 'a -> int
         (* [Luahash.hash x] associates a positive integer to any value of
            any type. It is guaranteed that
-                if [x = y], then [hash x = hash y]. 
+                if [x = y], then [hash x = hash y].
            Moreover, [hash] always terminates, even on cyclic
            structures. *)
 
-@ 
+@
 <<luahash.ml>>=
 (***********************************************************************)
 (*                                                                     *)
@@ -144,7 +144,7 @@ let dump_buckets h k i l =
     | Empty -> ()
     | Cons (k', i', l) ->
         List.iter prerr_string ["New bucket hash = "; int (hash k'); " [mod=";
-                                hmod k'; "]"; 
+                                hmod k'; "]";
                                 if h.eq k k' then " (identical " else " (different ";
                                 "keys)\n"];
         dump l
@@ -180,7 +180,7 @@ let dump_table_stats h =
     stats h.data.(i)
   done;
   let mean = ratio (!sum) (!n) in
-  let variance = 
+  let variance =
     if !n > 1 then                         (* concrete math p 378 *)
       (float (!sumsq) -. float (!sum) *. mean) /. (float (!n - 1))
     else
@@ -263,7 +263,7 @@ let rec next_at h index =
     | Empty -> next_at h (index+1)
     | Cons(k1, d1, _) -> (k1, d1)
 
-let rec following eq key fail = 
+let rec following eq key fail =
   let finish = function
     | Empty -> fail ()
     | Cons (k, d, _) -> (k, d)
@@ -278,7 +278,7 @@ let next h key =
   let finish = function
     | Empty -> next_at h (index+1)
     | Cons (k, d, _) -> (k, d)
-  in 
+  in
   match h.data.(index) with
     Empty -> next_at h (index+1)
   | Cons(k1, _, rest1) ->

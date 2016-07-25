@@ -23,7 +23,7 @@ Combine all the types using [[Lualib.Combine.T]]$n$, where $n$~is the
 number of different types of userdata supported.
 \item
 Use the [[COMBINED_TYPE]] module returned to inform all the libraries
-how to get 
+how to get
 ``views'' of the types they depend on.
 This may mean passing one or more views to each library.
 \item
@@ -44,7 +44,7 @@ module type USERTYPE = sig
   val eq : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
   val to_string : ('a -> string) -> 'a t -> string
 end
-@ 
+@
 A ``combined type'' is composed of up to 10 individual types.
 We provide a ``view'' of each type, which is essentially the ability
 to convert between values of the combined type and values of the
@@ -53,7 +53,7 @@ We could provide this ability as a pair of type
 [[('a t, 'a combined) Luavalue.ep]], but it is more convenient for the
 clients to provide it as a function.
 Given a view [[T : TYPEVIEW]] and a suitable module
-[[V : Luavalue.S]], clients will have code 
+[[V : Luavalue.S]], clients will have code
 such as
 \begin{verbatim}
    let map = T.makemap V.userdata V.projection
@@ -65,8 +65,8 @@ module type TYPEVIEW = sig
   val makemap : ('a combined, 'b, 'b) Luavalue.ep -> ('b -> string -> 'a t)
                 -> ('a t, 'b, 'b) Luavalue.ep
 end
-@ 
-When up to ten types are combined into a single type, 
+@
+When up to ten types are combined into a single type,
 the result provides views of all ten:
 <<signatures>>=
 module type COMBINED_CORE = sig
@@ -91,10 +91,10 @@ module type COMBINED_TYPE = sig
   include USERTYPE
   include COMBINED_CORE with type 'a also_t = 'a t
 end
-@ 
+@
 A library module needs zero or more views, plus an \emph{interpreter
 core}, which enables libraries to use some of the capabilities of the
-interpreter. 
+interpreter.
 <<signatures>>=
 module type CORE = sig
   module V : Luavalue.S
@@ -107,7 +107,7 @@ module type CORE = sig
   val register_globals :           (string * V.value) list -> V.state -> unit
   val register_module  : string -> (string * V.value) list -> V.state -> unit
 end
-@ 
+@
 All a library does is add values to the initial state of an
 interpreter.
 These values are the functions, etc, provided by the library.
@@ -122,7 +122,7 @@ A \emph{bare} library does not use any user types---only the basic
 ones built into every Lua interpreter.  That means it works with any
 core at all.
 <<signatures>>=
-module type BARECODE = 
+module type BARECODE =
   functor (C : CORE) -> sig
     val init : C.V.state -> unit
   end
@@ -138,7 +138,7 @@ module type USERCODE = sig
     val init : C.V.state -> unit
   end
 end
-@ 
+@
 For simplicity, we combine only typeful libraries.
 This means we occasionally need to extend a bare library to make it typeful.
 We put the type first, not the library, because the partial
@@ -146,7 +146,7 @@ application is useful
 <<lualib.mli>>=
 <<signatures>>
 module WithType (T : USERTYPE) (L : BARECODE) : USERCODE with type 'a userdata' = 'a T.t
-@ 
+@
 Herewith the module [[Combine]], which contains members for combining
 up to 10 types and up to 10 libraries.
 <<lualib.mli>>=
@@ -173,7 +173,7 @@ module Combine : sig
     USERCODE with type 'a userdata' = 'a C1.userdata'
   <<similar specifications for [[C1]] to [[C9]]>>
 end
-@ 
+@
 If a user needs more than 10~types, it's necessary to lift a nested
 view.
 <<lualib.mli>>=
@@ -189,7 +189,7 @@ module Lift (T : COMBINED_TYPE) (View : TYPEVIEW with type 'a t = 'a T.t) :
      and type 'a TV8.t = 'a T.TV8.t
      and type 'a TV9.t = 'a T.TV9.t
      and type 'a TV10.t = 'a T.TV10.t
-@ 
+@
 Finally, this is a convenient place to export empty libraries and
 types, for those interpreters that won't use libraries or types.
 <<lualib.mli>>=
@@ -197,7 +197,7 @@ module Empty : sig
   module Type : COMBINED_TYPE
   module Library : USERCODE with type 'a userdata' = 'a Type.t
 end
-@ 
+@
 @
 \section{Implementation}
 
@@ -207,7 +207,7 @@ define some [[Unused]] types and libraries to use as placeholders for
 smaller values of~$n$.  The rest is bookkeeping.
 <<lualib.ml>>=
 <<signatures>>
-@ 
+@
 <<lualib.ml>>=
 module Unused = struct
   module Type : USERTYPE = struct
@@ -245,10 +245,10 @@ module WithType (T : USERTYPE) (L : BARECODE) : USERCODE with type 'a userdata' 
         let init g = M'.init g
       end (*M*)
     end (*WithType*)
-@ 
+@
 <<[[Combine]] contents>>=
   module T10 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE)
-             (T5 : USERTYPE) (T6 : USERTYPE) (T7 : USERTYPE) (T8 : USERTYPE) 
+             (T5 : USERTYPE) (T6 : USERTYPE) (T7 : USERTYPE) (T8 : USERTYPE)
              (T9 : USERTYPE) (T10 : USERTYPE)
    : COMBINED_TYPE with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t
                    with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t
@@ -297,7 +297,7 @@ module WithType (T : USERTYPE) (L : BARECODE) : USERCODE with type 'a userdata' 
     | T8 x -> T8.to_string vs x
     | T9 x -> T9.to_string vs x
     | T10 x -> T10.to_string vs x
-        
+
   module type VIEW = TYPEVIEW with type 'a combined = 'a t
   module V = Luavalue
   module TV1 = struct
@@ -310,17 +310,17 @@ module WithType (T : USERTYPE) (L : BARECODE) : USERCODE with type 'a userdata' 
                     | _ -> fail x T1.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T1 x -> true | _ -> false)
-      } 
+      }
   end
   <<nested [[T2]]..[[T10]] in [[Combine.T10]]>>
   end (* Combine.T10 *)
   <<definitions of [[Combine.T1]] through [[Combine.T9]]>>
-@ 
-@ 
+@
+@
 <<lualib.ml>>=
 module Empty = struct
   module Type = Combine.T1 (Unused.Type)
-  module Library = 
+  module Library =
     struct
       type 'a userdata' = 'a Type.t
       module M (C : CORE with type 'a V.userdata' = 'a userdata') = struct
@@ -328,7 +328,7 @@ module Empty = struct
       end (*M*)
     end (*Empty.Library*)
 end
-@ 
+@
 <<[[Combine]] contents>>=
   module C10 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
@@ -340,7 +340,7 @@ end
     (C8 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C9 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C10 : USERCODE with type 'a userdata' = 'a C1.userdata') :
-    USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+    USERCODE with type 'a userdata' = 'a C1.userdata'   =
   struct
     type 'a userdata' = 'a C1.userdata'
     module M  (C : CORE with type 'a V.userdata' = 'a userdata') = struct
@@ -383,7 +383,7 @@ end
                     | _ -> fail x T2.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T2 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV3 = struct
@@ -396,7 +396,7 @@ end
                     | _ -> fail x T3.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T3 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV4 = struct
@@ -409,7 +409,7 @@ end
                     | _ -> fail x T4.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T4 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV5 = struct
@@ -422,7 +422,7 @@ end
                     | _ -> fail x T5.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T5 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV6 = struct
@@ -435,7 +435,7 @@ end
                     | _ -> fail x T6.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T6 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV7 = struct
@@ -448,7 +448,7 @@ end
                     | _ -> fail x T7.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T7 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV8 = struct
@@ -461,7 +461,7 @@ end
                     | _ -> fail x T8.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T8 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV9 = struct
@@ -474,7 +474,7 @@ end
                     | _ -> fail x T9.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T9 x -> true | _ -> false)
-      } 
+      }
   end
 
   module TV10 = struct
@@ -487,9 +487,9 @@ end
                     | _ -> fail x T10.tname)
       ; V.is      = (fun x -> upper.V.is x &&
                               match upper.V.project x with T10 x -> true | _ -> false)
-      } 
+      }
   end
-@ 
+@
 <<lualib.ml>>=
 module Lift (T : COMBINED_TYPE) (View : TYPEVIEW with type 'a t = 'a T.t) :
   COMBINED_VIEWS with type 'a t = 'a View.combined
@@ -527,7 +527,7 @@ module Lift (T : COMBINED_TYPE) (View : TYPEVIEW with type 'a t = 'a T.t) :
     module TV9  = Lift(T.TV9)
     module TV10 = Lift(T.TV10)
   end (* Lift *)
-@ 
+@
 This Icon code was used to generate C1 through C9
 <<lspecl.icn>>=
 procedure main()
@@ -537,21 +537,21 @@ procedure main()
   write("@<<[[Combine]] contents>>=")
   every def (1 to 9)
 end
- 
+
 procedure spec(k, succ)
   write("  module L", k, " (C1 : USERCODE)")
   every write ("    (L", 2 to k, " : USERCODE with type 'a userdata' = 'a C1.userdata')")
   write("  : USERCODE with type 'a userdata' = 'a C1.userdata'", \succ | "")
 end
 
-procedure def(k) 
+procedure def(k)
   spec(k, "   = ")
   writes("    C10")
   every writes(" (L", 1 to k, ")")
   every k+1 to 10 do writes(" (Unused.Typeful(C1))")
   write()
 end
-@ 
+@
 This Icon code generated [[T1]] through [[T9]].
 <<tspecl.icn>>=
 procedure main()
@@ -561,7 +561,7 @@ procedure main()
   write("@<<definitions of [[Combine.T1]] through [[Combine.T9]]>>=")
   every def (1 to 9)
 end
- 
+
 procedure spec(k, succ)
   writes("module T", k)
   every writes(" (T", 1 to k, " : USERTYPE)")
@@ -571,14 +571,14 @@ procedure spec(k, succ)
   write(\succ | "")
 end
 
-procedure def(k) 
+procedure def(k)
   spec(k, "   = ")
   writes("    T10")
   every writes(" (T", 1 to k, ")")
   every k+1 to 10 do writes(" (Unused.Type)")
   write()
 end
-@ 
+@
 
 <<similar specifications for [[C1]] to [[C9]]>>=
   module C1 (C1 : USERCODE)
@@ -638,29 +638,29 @@ end
 @
 <<[[Combine]] contents>>=
   module C1 (C1 : USERCODE)
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C2 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C3 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C3 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C4 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C3 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C4 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (C4) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C5 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C3 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C4 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C5 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (C4) (C5) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C6 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
@@ -668,7 +668,7 @@ end
     (C4 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C5 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C6 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (C4) (C5) (C6) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C7 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
@@ -677,7 +677,7 @@ end
     (C5 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C6 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C7 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (C4) (C5) (C6) (C7) (Unused.Typeful(C1)) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C8 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
@@ -687,7 +687,7 @@ end
     (C6 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C7 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C8 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (C4) (C5) (C6) (C7) (C8) (Unused.Typeful(C1)) (Unused.Typeful(C1))
   module C9 (C1 : USERCODE)
     (C2 : USERCODE with type 'a userdata' = 'a C1.userdata')
@@ -698,7 +698,7 @@ end
     (C7 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C8 : USERCODE with type 'a userdata' = 'a C1.userdata')
     (C9 : USERCODE with type 'a userdata' = 'a C1.userdata')
-  : USERCODE with type 'a userdata' = 'a C1.userdata'   = 
+  : USERCODE with type 'a userdata' = 'a C1.userdata'   =
     C10 (C1) (C2) (C3) (C4) (C5) (C6) (C7) (C8) (C9) (Unused.Typeful(C1))
 <<similar specifications for [[T1]] to [[T9]]>>=
 module T1 (T1 : USERTYPE)  : COMBINED_TYPE
@@ -722,30 +722,30 @@ module T9 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE) (T5 : 
 @
 <<definitions of [[Combine.T1]] through [[Combine.T9]]>>=
 module T1 (T1 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t   = 
+ with type 'a TV1.t = 'a T1.t   =
     T10 (T1) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type)
 module T2 (T1 : USERTYPE) (T2 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t   =
     T10 (T1) (T2) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type)
 module T3 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t   =
     T10 (T1) (T2) (T3) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type)
 module T4 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t   =
     T10 (T1) (T2) (T3) (T4) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type)
 module T5 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE) (T5 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t   =
     T10 (T1) (T2) (T3) (T4) (T5) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type)
 module T6 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE) (T5 : USERTYPE) (T6 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t   =
     T10 (T1) (T2) (T3) (T4) (T5) (T6) (Unused.Type) (Unused.Type) (Unused.Type) (Unused.Type)
 module T7 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE) (T5 : USERTYPE) (T6 : USERTYPE) (T7 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t with type 'a TV7.t = 'a T7.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t with type 'a TV7.t = 'a T7.t   =
     T10 (T1) (T2) (T3) (T4) (T5) (T6) (T7) (Unused.Type) (Unused.Type) (Unused.Type)
 module T8 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE) (T5 : USERTYPE) (T6 : USERTYPE) (T7 : USERTYPE) (T8 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t with type 'a TV7.t = 'a T7.t with type 'a TV8.t = 'a T8.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t with type 'a TV7.t = 'a T7.t with type 'a TV8.t = 'a T8.t   =
     T10 (T1) (T2) (T3) (T4) (T5) (T6) (T7) (T8) (Unused.Type) (Unused.Type)
 module T9 (T1 : USERTYPE) (T2 : USERTYPE) (T3 : USERTYPE) (T4 : USERTYPE) (T5 : USERTYPE) (T6 : USERTYPE) (T7 : USERTYPE) (T8 : USERTYPE) (T9 : USERTYPE)  : COMBINED_TYPE
- with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t with type 'a TV7.t = 'a T7.t with type 'a TV8.t = 'a T8.t with type 'a TV9.t = 'a T9.t   = 
+ with type 'a TV1.t = 'a T1.t with type 'a TV2.t = 'a T2.t with type 'a TV3.t = 'a T3.t with type 'a TV4.t = 'a T4.t with type 'a TV5.t = 'a T5.t with type 'a TV6.t = 'a T6.t with type 'a TV7.t = 'a T7.t with type 'a TV8.t = 'a T8.t with type 'a TV9.t = 'a T9.t   =
     T10 (T1) (T2) (T3) (T4) (T5) (T6) (T7) (T8) (T9) (Unused.Type)
-@ 
+@

@@ -15,7 +15,7 @@ type 'a parse = int -> (int -> (unit -> 'a) -> 'a) -> (unit -> 'a) -> 'a
 let strindex = { V.embed   = (fun n -> V.int.V.embed (n+1))
                ; V.project = (fun v -> V.int.V.project v - 1)
                ; V.is = V.int.V.is
-               } 
+               }
 
 let string_builtins =
   let invalid f x =
@@ -24,7 +24,7 @@ let string_builtins =
     | V.Function (l, f) -> V.Function(l, invalid f)
     | v -> raise (V.Projection (v, "function")) in
   let ifunc ty f = wrap_inv (V.efunc ty f) in
-  <<support for matching>> 
+  <<support for matching>>
   let quote_char c t = if alnum c then c :: t else '%' :: c :: t in
   let quote_pat p = List.fold_right quote_char (explode p) [] in
   let strfind s pat init plain =
@@ -59,8 +59,8 @@ let string_builtins =
                (fun s i -> Char.code (String.get s i))
   ; "format",  ifunc (V.string **-> V.value *****->> V.string) format
   ; "gsub",    V.caml_func (fun _ -> I.error "string library does not implement gsub")
-  ] 
-@ 
+  ]
+@
 <<luastrlib.ml>>=
 module M (I : Lua.Lib.CORE) = struct
   module V = I.V
@@ -70,7 +70,7 @@ module M (I : Lua.Lib.CORE) = struct
   <<string builtins>>
   let init = I.register_globals string_builtins
 end
-@ 
+@
 Code for [[format]] borrowed from standard [[Printf]] library.
 <<support for [[format]]>>=
 external format_int: string -> int -> string = "caml_format_int"
@@ -108,9 +108,9 @@ let bprintf_internal buf format =
         | c ->
             let arg, args =
               match args with h :: t -> h, t
-              | [] -> I.error 
+              | [] -> I.error
                       "Not enough arguments to string-library function `format'" in
-            match c with 
+            match c with
             | 's' ->
                 let s = V.string.V.project arg in
                 if j <= i+1 then
@@ -135,7 +135,7 @@ let bprintf_internal buf format =
         | 'c' ->
             let c =
               try Char.chr (V.int.V.project arg)
-              with Invalid_argument _ -> V.projection arg "Character code" in  
+              with Invalid_argument _ -> V.projection arg "Character code" in
             Buffer.add_char buf c;
             doprn (succ j) args
         | 'd' | 'i' | 'o' | 'x' | 'X' | 'u' ->
@@ -168,7 +168,7 @@ let bprintf_internal buf format =
   in doprn 0
 
 let format fmt args = bprintf_internal (Buffer.create 16) fmt args
-@ 
+@
 A recognizer takes as arguments a position and success and failure continuations.
 The implementation is based on standard parser combinators.
 <<support for matching>>=
@@ -215,8 +215,8 @@ let find pat s =
   let char p i succ fail =
     if (try p s.[i] with _ -> false) then succ (i+1) fail else fail () in
   let comp pat =
-    let rec comp lps c cs = 
-      let rec finish (p, cs) = 
+    let rec comp lps c cs =
+      let rec finish (p, cs) =
         match cs with
         | '*' :: cs -> finish (star p, cs)
         | '?' :: cs -> finish (opt  p, cs)
@@ -251,16 +251,16 @@ let alnum  = orp letter digit   in
 let non p c = not (p c)   in
 let percent = function
   | 'a' -> letter | 'A' -> non letter
-  | 'd' -> digit  | 'D' -> non digit 
-  | 'l' -> lower  | 'L' -> non lower 
+  | 'd' -> digit  | 'D' -> non digit
+  | 'l' -> lower  | 'L' -> non lower
   | 's' -> space  | 'S' -> non space
   | 'u' -> upper  | 'U' -> non upper
   | 'w' -> alnum  | 'W' -> non alnum
   | c when non alnum c -> (=) c
   | _ -> I.error "bad % escape in pattern"   in
-@ 
+@
 <<character-matching functions>>=
-let cclass cs = 
+let cclass cs =
   let orr p (p', cs) = orp p p', cs in
   let rec pos cs = match cs with
     | ']' :: cs -> orr ((=) ']') (pos2 cs)

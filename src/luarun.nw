@@ -57,9 +57,9 @@ module Make (I : INTERP) = struct
     | "-new"  :: a's -> args a's
     | [] -> run_interactive stdin
     | files -> List.iter run files
-  
+
   let _ = args (List.tl (Array.to_list (Sys.argv)))
-  
+
   let _ = if !dumpstate then
     begin
       print_endline "final state: ";

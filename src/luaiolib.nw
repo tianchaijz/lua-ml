@@ -22,15 +22,15 @@ val in' :
 module T : Lua.Lib.USERTYPE  with type 'a t = 'a t
 module Make (TV : Lua.Lib.TYPEVIEW with type 'a t = 'a t)
     : Lua.Lib.USERCODE with type 'a userdata' = 'a TV.combined
-@ 
+@
 <<luaiolib.ml>>=
 type 'a t = In of in_channel | Out of out_channel
 type 'a state = { mutable currentin  : in_channel
                 ; mutable currentout : out_channel
-                } 
+                }
 type 'a alias_for_t = 'a t
 type 'a alias_for_state = 'a state
-@ 
+@
 <<i/o builtins>>=
 let file = T.makemap V.userdata V.projection in
 let infile  = in' file V.projection in
@@ -52,7 +52,7 @@ let succeed2 f x y = ((f x y : unit); "OK") in
 let setglobal s v = V.Table.bind g.V.globals (V.String s) v in
 
 let readfrom =
-  let setinput file = 
+  let setinput file =
     (io.currentin <- file; setglobal "_INPUT" (infile.V.embed file); file) in
   let from_string s =
     if String.get s 0 = '|' then
@@ -75,11 +75,11 @@ let open_out_string append s =
            else Unix.open_process_out (String.sub s 1 (String.length s - 1))
   | _   -> if append then open_out_append s else open_out s in
 
-let writeto' append = 
-  let setoutput file = 
+let writeto' append =
+  let setoutput file =
     (io.currentout <- file; setglobal "_OUTPUT" (outfile.V.embed file); file) in
   let to_nil () = (close_out io.currentout; setoutput stdout) in
-  let to_other _ = 
+  let to_other _ =
     let funname = if append then "appendto" else "writeto" in
     C.error ("bad args to " ^ funname) in
   [ V.alt (V.string **->> outfile)  (fun s -> setoutput (open_out_string append s))
@@ -87,7 +87,7 @@ let writeto' append =
   ; V.alt (outfile  **->> outfile)  setoutput
   ; V.alt (V.value  **->> V.value)  to_other
   ]  in
-    
+
 let read = function
   | None -> (try Some (input_line io.currentin) with End_of_file -> None)
   | Some _ -> C.error ("I/O library does not implement read patterns")  in
@@ -120,12 +120,12 @@ let io_builtins =
   ; "rename",    errfunc (V.string **-> V.string **->> V.string) (succeed2 Sys.rename)
   ; "tmpname",   V.efunc (V.unit **->> V.string) tmpname
   ; "read",      V.efunc (V.option V.string **->> V.option V.string) read
-  ; "write",     errchoose 
+  ; "write",     errchoose
                  [ V.alt (V.string *****->> V.int)   (* eta-expand to delay eval *)
                                                (fun l -> write_strings io.currentout l)
                  ; V.alt (outfile **-> V.string *****->> V.int) write_strings
-                 ]                          
-  ; "date",      V.efunc (V.option V.string **->> V.string) date 
+                 ]
+  ; "date",      V.efunc (V.option V.string **->> V.string) date
   ; "exit",      V.efunc (V.option V.int **->> V.unit) (fun n -> exit (getopt n 0))
   ; "getenv",    V.efunc (V.string **->> V.option V.string)
                  (fun s -> try Some (Sys.getenv s) with Not_found -> None)
@@ -136,7 +136,7 @@ let io_builtins =
   ; "_INPUT",    infile.V.embed  io.currentin
   ; "_OUTPUT",   outfile.V.embed io.currentout
   ] in
-@ 
+@
 <<luaiolib.ml>>=
 module T = struct
   type 'a t     = 'a alias_for_t
@@ -158,7 +158,7 @@ let out upper fail =
                     | _ -> fail x "output file")
       ; V.is      = (fun x -> upper.V.is x && match upper.V.project x with
                                               | Out x -> true | _ -> false)
-      } 
+      }
 let in' upper fail =
       { V.embed   = (fun x -> upper.V.embed (In x))
       ; V.project = (fun x -> match upper.V.project x with
@@ -166,7 +166,7 @@ let in' upper fail =
                     | _ -> fail x "input file")
       ; V.is      = (fun x -> upper.V.is x && match upper.V.project x with
                                               | In x -> true | _ -> false)
-      } 
+      }
 <<luaiolib.ml>>=
 module Make (T : Lua.Lib.TYPEVIEW with type 'a t = 'a t)
     : Lua.Lib.USERCODE with type 'a userdata' = 'a T.combined =
@@ -184,4 +184,4 @@ module Make (T : Lua.Lib.TYPEVIEW with type 'a t = 'a t)
          C.register_globals io_builtins g
      end (*M*)
   end (*Make*)
-@ 
+@

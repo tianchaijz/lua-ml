@@ -29,8 +29,8 @@ let math_builtins =
   ; "tan",        V.efunc (float **->> float)            tan
   ; "random",     V.efunc (V.value **->> float)          (fun _ -> Random.float 1.0)
   ; "randomseed", V.efunc (V.int **->> V.unit)           Random.init
-  ] 
-@ 
+  ]
+@
 <<luamathlib.ml>>=
 module M (I : Lua.Lib.CORE) = struct
   module V = I.V
